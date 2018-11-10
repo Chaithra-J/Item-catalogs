@@ -9,29 +9,29 @@ This application provides a list of items within a variety of categories as well
 * Implements oAuth using Google Sign-in API.
 
 ## Project Structure:
-.
-├── app.py
-├── client_secrets.json
-├── database_setup.py
-├── fake_db_populator.py
-├── itemcatalog.db
-├── LICENSE
-├── README.md
-├── static
-│   └── style.css
-└── templates
-    ├── delete_category.html
-    ├── delete.html
-    ├── edit_category.html
-    ├── index.html
-    ├── items.html
-    ├── layout.html
-    ├── login.html
-    ├── new-category.html
-    ├── new-item-2.html
-    ├── new-item.html
-    ├── update-item.html
-    └── view-item.html
+
+* app.py
+* client_secrets.json
+* database_setup.py
+* catalog.py
+* itemcatalog.db
+* LICENSE
+* README.md
+* static
+  * style.css
+* templates
+  * delete_category.html
+  * delete.html
+  * edit_category.html
+  * index.html
+  * items.html
+  * layout.html
+  * login.html
+  * new-category.html
+  * new-item-2.html
+  * new-item.html
+  * update-item.html
+  * view-item.html
 
 ## Steps to run this project
 1. Download and install Vagrant.
