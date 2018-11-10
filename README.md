@@ -72,7 +72,7 @@ This will cause Vagrant to download the Ubuntu operating system and install it. 
 
 ```python app.py```
 
-1. Open [http://localhost:5000/] (http://localhost:5000/)in your favourite Web browser, and enjoy.
+1. Open [http://localhost:5000/](http://localhost:5000/) in your favourite Web browser, and enjoy.
 
 1. Debugging
 In case the app doesn't run, make sure to confirm the following points:
