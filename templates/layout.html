@@ -48,7 +48,7 @@
                     <div class="alert alert-success alert-dismissible fade show mb-0 text-center" role="alert">
                 {% endif %}
             {% elif (message == 'You have been successfully logged out!') %}
-                <div class="alert alert-success alert-dismissible fade show mb-0 text-center" role="alert">
+                <div class="alert alert-primary alert-dismissible fade show mb-0 text-center" role="alert">
             {% else %}
                 <div class="alert alert-danger alert-dismissible fade show mb-0 text-center" role="alert">
             {% endif %}
@@ -63,19 +63,28 @@
     {% endif %}
     {% endwith %}
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{{ url_for('home') }}"><i class="fas fa-box-open text-and-icon"></i>Item Catalog</a>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="jumbotron jumbotron-fluid">
+            <div class="container">
+                <h1 class="display-4">Item Catalog</h1>
+                <p class="lead">A sports equipment catalog</p>
+                <p>You can add, edit or delete categories and equipments</p>
+            </div>
+        </div>                   
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav ml-auto">
+                <li class="nav-navbar">
+                        <form class="form-inline">
+                                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                                <a href="{{url_for('search')}}"><button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Search</button></a>
+                        </form>
+                </li>
                 <li class="nav-item active">
                   <a class="nav-link" href="{{ url_for('home') }}">Home <span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="{{ url_for('home') }}">Catalog <span class="sr-only">(catalog)</span></a>
                 </li>
                 
                 {% if 'username' in session %}
@@ -92,7 +101,7 @@
                   </li>
                   </ul>
                  {% else %}
-                <a href="{{ url_for('login') }}"><button class="btn btn-outline-primary my-2 my-sm-0" type="submit">Login or Sign up</button></a>
+                 <a href="{{url_for('login')}}"> <button class="btn btn-bd-download d-none d-lg-inline-block mb-3 mb-md-0 ml-md-3" href="https://github.com/twbs/bootstrap/archive/v4.0.0.zip">Login</button></a>
                 {% endif %}
           </div>        
       </nav>
