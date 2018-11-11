@@ -3,20 +3,18 @@
 
 {% block content %}
     <div class="container">
-        <div class="row" style="margin-top: 35px;">
+        <div class="row" style="margin-top: 30px;">
             <div class="col-md-7">
                <h1>Create New Category</h1>
 
                <form name="new-category" method="POST">
+                    
                     <div class="form-group">
                       <input name="new-category-name" type="text" class="form-control" required>
                     </div>
-
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-save text-and-icon"></i>Submit</button>
-                    <a href="{{ url_for('home') }}">
-                        <button type="button" class="btn btn-danger"><i class="fas fa-times text-and-icon"></i>Cancel</button>
-                    </a>
-                </form>
+                            <a href="{{ url_for('home') }}"><button type="submit" class="btn btn-secondary btn-lg">Add</button>
+                            <a href="{{ url_for('home') }}"><button type="submit" class="btn btn-secondary btn-lg">Cancel</button></a>                   
+               </form>
 
             </div>
         </div>
