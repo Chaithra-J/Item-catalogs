@@ -1,7 +1,3 @@
-#!/usr/bin/env python3
-# This modules contains all the routes for the functioning
-# of the application.
-
 from flask import Flask, render_template, request, redirect, jsonify, url_for
 from flask import flash, make_response
 from flask import session as login_session
@@ -16,32 +12,26 @@ import random
 import string
 import json
 import requests
+import feedparser
 
 
 app = Flask(__name__)
 
-# Load the Google Sign-in API Client ID.
 CLIENT_ID = json.loads(
     open('client_secrets.json', 'r').read())['web']['client_id']
 
-# Connect to the database and create a database session.
 engine = create_engine('sqlite:///itemcatalog.db',
                        connect_args={'check_same_thread': False})
 
-# Bind the above engine to a session.
-Session = sessionmaker(bind=engine)
+DBSession = sessionmaker(bind=engine)
+session = DBSession()
 
-# Create a Session object.
-session = Session()
-
-
-# Redirect to login page.
+# Home page.
 @app.route('/')
 @app.route('/catalog/')
 @app.route('/catalog/items/')
 def home():
-    """Route to the homepage."""
-
+    """Go to homepage."""
     categories = session.query(Category).all()
     items = session.query(Item).all()
     return render_template(
@@ -51,8 +41,6 @@ def home():
 # Create anti-forgery state token
 @app.route('/login/')
 def login():
-    """Route to the login page and create anti-forgery state token."""
-
     state = ''.join(random.choice(string.ascii_uppercase + string.digits)
                     for x in range(32))
     login_session['state'] = state
@@ -246,8 +234,6 @@ def get_user_id(email):
 # Add a new category.
 @app.route("/catalog/category/new/", methods=['GET', 'POST'])
 def add_category():
-    """Add a new category."""
-
     if 'username' not in login_session:
         flash("Please log in to continue.")
         return redirect(url_for('login'))
@@ -276,19 +262,10 @@ def add_category():
 # Create a new item.
 @app.route("/catalog/item/new/", methods=['GET', 'POST'])
 def add_item():
-    """Create a new item.
-    Note: This route will list all the categories that the
-    logged-in user has created. There is another module called
-    `add_item_by_category()` which creates items based on the
-    endpoint of the category mentioned.
-    """
-
     if 'username' not in login_session:
         flash("Please log in to continue.")
         return redirect(url_for('login'))
     elif request.method == 'POST':
-        # Check if the item already exists in the database.
-        # If it does, display an error.
         item = session.query(Item).filter_by(name=request.form['name']).first()
         if item:
             if item.name == request.form['name']:
@@ -320,14 +297,10 @@ def add_item():
 @app.route("/catalog/category/<int:category_id>/item/new/",
            methods=['GET', 'POST'])
 def add_item_by_category(category_id):
-    """Create new item by Category ID."""
-
     if 'username' not in login_session:
         flash("You were not authorised to access that page.")
         return redirect(url_for('login'))
     elif request.method == 'POST':
-        # Check if the item already exists in the database.
-        # If it does, display an error.
         item = session.query(Item).filter_by(name=request.form['name']).first()
         if item:
             if item.name == request.form['name']:
@@ -350,13 +323,6 @@ def add_item_by_category(category_id):
 
 # Check if the item exists in the database,
 def exists_item(item_id):
-    """Check if the item exists in the database.
-    Argument:
-        item_id (int) : The item ID to find in the database.
-    Returns:
-        A boolean value indicating whether the item exists or not.
-    """
-
     item = session.query(Item).filter_by(id=item_id).first()
     if item is not None:
         return True
@@ -366,13 +332,6 @@ def exists_item(item_id):
 
 # Check if the category exists in the database.
 def exists_category(category_id):
-    """Check if the category exists in the database.
-    Argument:
-        category_id (int) : The Category ID to find in the database.
-    Returns:
-        A boolean vale indicating whether the category exists or not.
-    """
-
     category = session.query(Category).filter_by(id=category_id).first()
     if category is not None:
         return True
@@ -394,8 +353,7 @@ def view_item(item_id):
             "view-item.html",
             item=item,
             category=category,
-            owner=owner
-        )
+            owner=owner)
     else:
         flash('We are unable to process your request right now.')
         return redirect(url_for('home'))
@@ -404,21 +362,16 @@ def view_item(item_id):
 # Edit existing item.
 @app.route("/catalog/item/<int:item_id>/edit/", methods=['GET', 'POST'])
 def edit_item(item_id):
-    """Edit existing item."""
-
     if 'username' not in login_session:
         flash("Please log in to continue.")
         return redirect(url_for('login'))
-
     if not exists_item(item_id):
         flash("We are unable to process your request right now.")
         return redirect(url_for('home'))
-
     item = session.query(Item).filter_by(id=item_id).first()
     if login_session['user_id'] != item.user_id:
         flash("You were not authorised to access that page.")
         return redirect(url_for('home'))
-
     if request.method == 'POST':
         if request.form['name']:
             item.name = request.form['name']
@@ -436,23 +389,18 @@ def edit_item(item_id):
         return render_template(
             'update-item.html',
             item=item,
-            categories=categories
-        )
+            categories=categories)
 
 
 # Delete existing item.
 @app.route("/catalog/item/<int:item_id>/delete/", methods=['GET', 'POST'])
 def delete_item(item_id):
-    """Delete existing item."""
-
     if 'username' not in login_session:
         flash("Please log in to continue.")
         return redirect(url_for('login'))
-
     if not exists_item(item_id):
         flash("We are unable to process your request right now.")
         return redirect(url_for('home'))
-
     item = session.query(Item).filter_by(id=item_id).first()
     if login_session['user_id'] != item.user_id:
         flash("You were not authorised to access that page.")
@@ -467,15 +415,12 @@ def delete_item(item_id):
         return render_template('delete.html', item=item)
 
 
-# Show items in a particular category.
+# Show items in a category.
 @app.route('/catalog/category/<int:category_id>/items/')
 def show_items_in_category(category_id):
-    """# Show items in a particular category."""
-
     if not exists_category(category_id):
         flash("We are unable to process your request right now.")
         return redirect(url_for('home'))
-
     category = session.query(Category).filter_by(id=category_id).first()
     items = session.query(Item).filter_by(category_id=category.id).all()
     total = session.query(Item).filter_by(category_id=category.id).count()
@@ -490,20 +435,13 @@ def show_items_in_category(category_id):
 @app.route('/catalog/category/<int:category_id>/edit/',
            methods=['GET', 'POST'])
 def edit_category(category_id):
-    """Edit a category."""
-
     category = session.query(Category).filter_by(id=category_id).first()
-
     if 'username' not in login_session:
         flash("Please log in to continue.")
         return redirect(url_for('login'))
-
     if not exists_category(category_id):
         flash("We are unable to process your request right now.")
         return redirect(url_for('home'))
-
-    # If the logged in user does not have authorisation to
-    # edit the category, redirect to homepage.
     if login_session['user_id'] != category.user_id:
         flash("We are unable to process your request right now.")
         return redirect(url_for('home'))
@@ -524,7 +462,6 @@ def edit_category(category_id):
 @app.route('/catalog/category/<int:category_id>/delete/',
            methods=['GET', 'POST'])
 def delete_category(category_id):
-    """Delete a category."""
 
     category = session.query(Category).filter_by(id=category_id).first()
 
@@ -535,9 +472,6 @@ def delete_category(category_id):
     if not exists_category(category_id):
         flash("We are unable to process your request right now.")
         return redirect(url_for('home'))
-
-    # If the logged in user does not have authorisation to
-    # edit the category, redirect to homepage.
     if login_session['user_id'] != category.user_id:
         flash("We are unable to process your request right now.")
         return redirect(url_for('home'))
@@ -551,23 +485,39 @@ def delete_category(category_id):
         return render_template("delete_category.html", category=category)
 
 
+# Search for an object
+@app.route('/catalog/search/')
+def search():
+    if request.method=='POST':
+        return render_template('search.html')
+
+@app.route('/searchRSS',methods=['POST'])
+def search_results():
+    feed = feedparser.parse("http://news.google.com/news?hl=en&gl=in&q="+request.form['query']+"&um=1&output=rss" )
+    posts = []
+    for i in range(0,len(feed['entries'])):
+        posts.append({
+            'date': feed['entries'][i].title,
+            'title': feed['entries'][i].updated,
+            'description': feed['entries'][i].description
+
+        })
+    return json.dumps(posts, separators=(',', ':'))
+
+
+
+
 # JSON Endpoints
 
-# Return JSON of all the items in the catalog.
 @app.route('/api/v1/catalog.json')
 def show_catalog_json():
-    """Return JSON of all the items in the catalog."""
-
     items = session.query(Item).order_by(Item.id.desc())
     return jsonify(catalog=[i.serialize for i in items])
 
 
-# Return JSON of a particular item in the catalog.
 @app.route(
     '/api/v1/categories/<int:category_id>/item/<int:item_id>/JSON')
 def catalog_item_json(category_id, item_id):
-    """Return JSON of a particular item in the catalog."""
-
     if exists_category(category_id) and exists_item(item_id):
         item = session.query(Item)\
                .filter_by(id=item_id, category_id=category_id).first()
@@ -581,15 +531,12 @@ def catalog_item_json(category_id, item_id):
         return jsonify(error='The item or the category does not exist.')
 
 
-# Return JSON of all the categories in the catalog.
 @app.route('/api/v1/categories/JSON')
 def categories_json():
-    """Returns JSON of all the categories in the catalog."""
-
     categories = session.query(Category).all()
     return jsonify(categories=[i.serialize for i in categories])
 
 
 if __name__ == "__main__":
-    app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+    app.secret_key = 'super_secret_key'
     app.run(host="0.0.0.0", port=5000, debug=True)
