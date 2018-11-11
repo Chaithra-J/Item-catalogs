@@ -12,8 +12,10 @@
                 </div>
             <div class="row" style="margin-top: 10px;">
                 <form method="POST">
-                    <button type="submit" class="btn btn-danger"><i class="far fa-trash-alt text-and-icon"></i>Delete</button>
-                    <a href="{{ url_for('view_item', item_id=item.id) }}"><button type="button" class="btn btn-success"><i class="fas fa-times text-and-icon"></i>Cancel</button></a>
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                                <button type="submit" class="btn btn-secondary btn-lg">Delete</button>
+                                <a href="{{ url_for('view_item', item_id=item.id) }}"><button type="button" class="btn btn-secondary btn-lg">Cancel</button></a>
+                        </div>  
                 </form>
             </div>
         </div>
